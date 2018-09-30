@@ -1,0 +1,55 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(AppliedPredictiveModeling)
+
+data("abalone")
+
+head(abalone)
+```
+
+```{r}
+plot(Rings~Diameter, data =abalone)
+mod1 = lm(Rings~Diameter, data =abalone)
+abline(mod1)
+summary(mod1)
+#How unlikely is our sample?, How many standard errors from our Ho is our sample?
+```
+
+```{r}
+library(dplyr)
+set.seed(12901)
+
+#100 random
+sample1 = sample_n(abalone, 100)
+sample2 = sample_n(abalone, 100)
+sample3 = sample_n(abalone, 100)
+sample4 = sample_n(abalone, 100)
+sample5 = sample_n(abalone, 100)
+
+abalone_mod_sample1 = lm(Rings~Diameter, data=sample1)
+abalone_mod_sample2 = lm(Rings~Diameter, data=sample2)
+abalone_mod_sample3 = lm(Rings~Diameter, data=sample3)
+abalone_mod_sample4 = lm(Rings~Diameter, data=sample4)
+abalone_mod_sample5 = lm(Rings~Diameter, data=sample5)
+
+coef(abalone_mod_sample1)
+coef(abalone_mod_sample2)
+coef(abalone_mod_sample3)
+coef(abalone_mod_sample4)
+coef(abalone_mod_sample5)
+
+confint(abalone_mod_sample1, level = .5) #50% confident our slope falls into this interval, 50% of the time, how will it be 50% that100 sample captures actual slope
+confint(abalone_mod_sample2, level = .5)
+confint(abalone_mod_sample3, level = .5)
+confint(abalone_mod_sample4, level = .5)
+confint(abalone_mod_sample5, level = .5)
+
+summary(abalone_mod_sample1) #the t score includes both tails
+#p value below .05, this is known as the significance level, lower score means more evidence to reject null
+```
+

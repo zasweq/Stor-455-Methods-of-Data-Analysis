@@ -1,0 +1,113 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(mosaic)
+library(Stat2Data)
+library(readr)
+#Ask about rounding comment, so the t test is two sided for slope using that distribution, also do we need to explain variables for three tests or just write the three lines of code for the tests
+```
+
+
+```{r}
+#Usedcarlot$model == "Jetti"
+library(readr)
+UsedCarLot <- read_csv("~/STOR 455/UsedCarLot.csv")
+Mercedes = subset(UsedCarLot, UsedCarLot$model == "Eclass") #Chose Mercedes E Class
+View(Mercedes)
+Mercedes$age<-2018-Mercedes$year
+head(Mercedes)
+```
+
+```{r}
+plot(price~age, data=Mercedes)
+mod1 = lm(price~age, data=Mercedes)
+abline(mod1)
+summary(mod1)
+#least squares regression line: price = 47.757 - 3.543age
+#The slope shows that for every year older a used car is, the price decreases by 3.543 thousand according to our linear model
+#The negative slope makes sense, as when our car gets older, the age increases, and depreciates the value of the car
+plot(mod1$residuals~mod1$fitted.values)
+abline(a=0, b=0)
+hist(mod1$residuals)
+qqnorm(mod1$residuals)
+qqline(mod1$residuals)
+# Condition 1 Looks like a linear model somewhat works, although I theorize an logramithic one would work better, as there seems to be an exponential trend in the data
+# Condition 2 Overall, it looks like the residuals center around zero, however there seems to be a pattern, where the older cars seem to be above the prediction line
+# Condition 3 there seems to be more variance at the lower age values than at the higher age values, there does not seem to be constant variance
+# Condition 4 looks a tad bit left skewed, even shown in the qq plot
+```
+
+```{r}
+max(mod1$residuals) #Greater in absolute value
+min(mod1$residuals)
+which.max(mod1$residuals) #This is how I found the car with the max residual
+#Car 27 has the highest residual, at age = 4
+rstandard(mod1)
+#Car 27 has a standardized residual of 2.295
+rstudent(mod1)
+#Car 27 has a studentized residual of 2.407
+#The standarized residual is over 2 standard deviations away, making it a "mild" outlier
+#The studentized residual is 2.4 standard devations away. This is only a little bit above the standarized residual, which shows that this outlier does not have that much pull on the least squares regression line. My explanation for this is the high amount of variance at the young car ages, making this one large outlier not have that big of an effect due to many high variance values at this young age range of cars.
+```
+
+```{r}
+confint(mod1, level = .90)
+#This is a confidence interval for the slope of our data based on the degrees of freedom and the standard error. This is saying that we have 90% confidence that our slope is between the ranges of -4.007 and -3.079, or how many thousand dollars the price decreases every year the car ages.
+
+summary(mod1) #Test for slope
+#The p value of this t value happening is pretty much zero, which means that assuming the null hypothesis of slope to be zero to be true, this t value (estimate/std error) would almost never happen by chance. This gives us to reject the null hypothesis of slope is zero and accept the alternate hypothesis of slope not equaling zero.
+cor.test(price~age, data=Mercedes) #Test for correlation
+#Again, with a high absolute value t value and an almost zero probablity, this gives us enough evidence to reject the null hypothesis of correlation = 0 and accept the null hypothesis that correlation does not equal zero.
+anova(mod1) #ANOVA for regression
+#Again, we have a high f value and thus an almost zero probability that this fvalue would be true with the null hypothesis being true (compare data to mean), as there would be many low f values. This gives us statisticlaly signifcant evidence to accept the alternative hypothesis that we should compare our data to least squares regression line.
+```
+
+```{r}
+#Part 7
+#least squares regression line: price = 47.757 - 3.543age
+#After plugging in 5 to this equation, we get 30.042 thousand dollars as our prediction, simply the calculated value through our linear model
+newx=data.frame(age=5)
+
+predict.lm(mod1, newx, interval = "confidence", level=.90)
+#This interval is the confidence interval for mean Y, prediciting with a 90% confidence what the average y is at that x
+#So, in the case for this data set, this is prediciting that at the value age = 5 on the x axis, we are 90% confident that the average price for all the price values at this age variable lie between 28.43 thousand and 31.65 thousand
+predict.lm(mod1, newx, interval = "prediction", level=.90)
+#This interval is the prediction interval for an individual y at an x value, so at a specific x value, what value of y can we predict with a 90% confidence. This has a larger range because there is more variability due to it only being a single point and not a mean of a collection of points.
+#In this case, we are 90% confident that at age 5, the price for an individual car will range from 18.566 and 41.521.
+```
+
+```{r}
+#My model predicts that at age 13.479 years old, the car would become free (found from the least squares regression line)
+#This is obviously inaccurate, as shown through the many data points older than this age that are still not free
+#This shows that our a linear model is not the most appropriate for our data, as free cars and negative prices do not exist. This backs up my earlier hypothesis that a lograrithmic model may be the best for this data, which we can achieve through data transformation.
+```
+
+```{r}
+plot(log(price)~age, data=Mercedes)
+plot(price~log(age), data=Mercedes)
+plot(log(price)~log(age), data=Mercedes) #clearly a linear model would not be appropriate
+#both of the first two look like a linear model would be appropriate, but moreso for the first one
+```
+
+```{r}
+plot(log(price)~age, data=Mercedes)
+mod2 = lm(log(price)~age, data=Mercedes)
+abline(mod2)
+plot(mod2$residuals~mod2$fitted.values)
+abline(a=0, b=0)
+hist(mod2$residuals)
+qqnorm(mod2$residuals)
+qqline(mod2$residuals)
+# Condition 1 Looks like a linear model fits the data very well
+# Condition 2 Overall, it looks like the residuals center around zero
+# Condition 3 Looks like constant variance throughout the model
+# Condition 4 looks like the residuals are normally distributed, shown both in the histogram and also the qq norm plot
+# Overall, it seems like a linear model can be used for this transformed dataset
+# For me, it makes sense that once you have log of price on the y axis, it fits somewhat linearly, as the first few years really depreciate the cars worth and novelty, but in the later years it still stays a functioning car, and in this case stills stays a luxury well known brand
+```
+

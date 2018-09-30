@@ -1,0 +1,323 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(mosaic)
+library(Stat2Data)
+library(readr)
+library(car)
+library(leaps)
+```
+
+```{r}
+library(readr)
+DistanceHome <- read_csv("~/STOR 455/DistanceHome.csv")
+View(DistanceHome)
+```
+
+```{r}
+#Usedcarlot$model == "Jetti"
+plot(Distance~Hours, data=DistanceHome)
+Domestic = subset(DistanceHome, DistanceHome$Distance < 250)
+plot(Distance~Hours, data=Domestic)
+moddist=lm(Distance~Hours, data=Domestic)
+abline(moddist)
+summary(moddist)
+#Bi = statistic (intercept, slope, etc.)
+#t=standard errors in each direction
+#t value, assuming that each variable = 0, how many std devs away, condecising error into slope
+#P value is chance if null hypothesis we get distribution by random
+```
+
+```{r}
+qt(.975, 52) #how many standard errors to have a .975 chance of getting it, 52 degrees of freedom, represents one tail of 95% confidence interval (I think)
+59.977-2.006647*2.484
+59.977+2.006647*2.484
+#We are 97.5 percent confidence our data falls within that confidence interval
+confint(moddist, level = .975)
+#oh it has 1-.975/2 on each side duh, so greather than .95 chance
+confint(moddist, level = .95)
+print(summary(moddist), digits=10) #simply more significant figures
+print(qt(.975, 52), digits=10) #same
+#t value is estimate/standard error
+```
+
+```{r}
+data("SpeciesArea")
+head(SpeciesArea)
+
+plot(Species~Area, data=SpeciesArea)
+modArea=lm(Species~Area, data=SpeciesArea)
+abline(modArea)
+summary(modArea)
+```
+
+```{r}
+newx=data.frame(Hours=2.25) #new dataset, one variable, one case where that variable is 2.25
+View(newx)
+predict.lm(moddist, newx, interval = "confidence") #mean distance away from home, "all people away from home"
+predict.lm(moddist, newx, interval="prediction")#one person 2.25 hours away from home
+CIPIPlot(Domestic$Hours, Domestic$Distance)
+#Lecture 9
+#YourData[, "age"] = 2018-YourData$year
+#Confidence interval for intercept is mainly useless, slope is useful
+#Plot(y~x) = Plot(x, y) x=predictor, y=response
+#Black line is regression line, red is confidence interval for all, blue is predict
+#Closest to middle, closest to regression line, slight fanning pattern
+#ANOVA-Analysis of Variance
+```
+
+```{r}
+# define a function to plot CI and PI bounds on a scatterplot 
+# for a simple linear model
+# written by R. Lock, modified by J. Chapman and I. Ramler
+# Arguments:
+#   x, y: x- and y-variables
+#   level: confidence level (as a proportion) - defaults to 0.95
+#   xname,yname - names (labels) for plots
+
+CIPIPlot = function(x, y, level=0.95, xname = "x", yname="y"){ #defined a new function that isn't there automatically
+  #fit the model
+  mymodel = lm(y ~ x)
+  
+  #get values needed for PI and CI formulas
+  n = length(x)
+  tstar = qt( 1 - (1-level)/2, n-2)
+  xbar = mean(x)
+  ssx = sum( (x-xbar)^2 )
+  b0 = mymodel$coeff[1]    #intercept
+  b1 = mymodel$coeff[2]    #slope
+  Se = summary(mymodel)$sigma       #standard dev of error
+  
+  # determine appropriate bounds for plot so entire bands show
+  # the most extreme points will come from the prediction intervals,
+  # since those are wider
+  y1 = b0+b1*min(x) - tstar * Se * sqrt( 1 + 1/n + (min(x)-xbar)^2/ssx )
+  y2 = b0+b1*max(x) + tstar * Se * sqrt( 1 + 1/n + (max(x)-xbar)^2/ssx )
+  
+  
+  #scatterplot with line
+  plot(y ~ x,main = "Confidence and Prediction Intervals", pch=16, ylim = sort(c(y1,y2)),
+       xlab = xname, ylab = yname)
+  abline(mymodel)
+  
+  
+  #add curves for the CI bounds
+  curve(b0+b1*x+tstar*Se*sqrt(1/n+(x-xbar)^2/ssx),add=T,lty=2, col="red",lwd=1)
+  curve(b0+b1*x-tstar*Se*sqrt(1/n+(x-xbar)^2/ssx),add=T,lty=2, col="red",lwd=1)
+  #add curves for the PI bounds
+  curve(b0+b1*x+tstar*Se*sqrt(1+1/n+(x-xbar)^2/ssx),add=T,lty=2, col="blue",lwd=1)
+  curve(b0+b1*x-tstar*Se*sqrt(1+1/n+(x-xbar)^2/ssx),add=T,lty=2, col="blue",lwd=1)
+}
+
+```
+
+```{r}
+anova(moddist)
+#df degrees of freedom (of variance)how many variables there are
+#mean square is sum/df
+```
+
+```{r}
+ybar=mean(Domestic$Distance)
+
+SSModel=sum((moddist$fitted-ybar)^2)
+SSE=sum(moddist$residuals^2)
+SSTotal=sum((Domestic$Distance-ybar)^2)
+
+MSM=SSModel
+```
+
+```{r}
+cor(Domestic$Distance, Domestic$Hours)
+
+data("Houses") #Matrix representation of correlation
+cor(Houses)
+#Test for correlation:
+#Ho: p = 0 (correlation=0) No relationship year vs. hurricanes
+#Ha: p does not equal zero (Some relationship)
+#Hypothesis Testing: How likely is it to get r=.306, if p=0
+#P value-.00082 possibility of randomly getting r=.306 randomly
+
+#ANOVA:
+#B1 (slope)=.0017
+#Ho= B1=0
+#Ha= B1 does not equal 0
+
+#F=Variablity of model to null/Variability of data to model
+#Distributed right skewed
+#How likely sample we got is true assuming null hypothesis is true
+```
+
+```{r}
+#Lecture 10
+data("Houses")
+head(Houses)
+cor(Houses) #This thing gives the nine boxes, then the cor test tests for the test statistic
+#Multiple Regression
+cor.test(Houses$Price, Houses$Size)
+cor.test(Houses$Price, Houses$Lot)
+cor.test(Houses$Size, Houses$Lot)
+#Linear Model based on two variables, order somewhat matters
+modelH = lm(Price~Size+Lot, data=Houses)
+summary(modelH)
+#Two different t test for slope
+#In this model, p value is high for both size and lot, because t test for slope accounts for the other predictors in the model, doesn't neccsearly mean these variables are not significant
+#Multiple R-squared-How much variation in your response is accounted for by the two predictors
+
+#ANOVA-Still same, how much variation is explained by model?
+anova(modelH) #sequential sums ANOVA, not common
+anova455(modelH) #ANOVA test assumes slope is zero, signifance is that at least one variable is useful to us, because it compares them all
+
+#No matter what you do, when you add a new predictor, it will have a higher r squared
+#Adjusted R squared will be lower to compensate
+#Easy to see model is statistcally significant, however hard to see if individual variables are statistically significant
+```
+
+```{r}
+anova455=function(model){ #anova script
+  numpred=model$rank-1
+  dferror=df.residual(model)
+  dfmodel=numpred
+  dftotal=dfmodel+dferror
+  sse=sum(model$residual^2)
+  ssmodel=sum(model$effects[2:(numpred+1)]^2)
+  sstotal=ssmodel+sse
+  msmodel=ssmodel/dfmodel
+  mse=sse/dferror
+  fstat=msmodel/mse
+  pvalue=1-pf(fstat,dfmodel,dferror)
+  df=c(dfmodel,dferror,dftotal)
+  ss=c(ssmodel,sse,sstotal)
+  ms=c(msmodel,mse,0)
+  f=c(fstat,0,0)
+  p=c(pvalue,0,0)
+  table=data.frame(df,ss,ms,f,p)
+  table[2,4:5]=NA
+  table[3,3:5]=NA
+
+  colnames(table)=c("Df","Sum Sq","Mean Sq","F value","P(>F)")
+  row.names(table)=c("Model","Error","Total")
+  class(table)=c("anova","data.frame")
+  structure(table,
+            heading=c("ANOVA Table",
+                      paste("Model:", 
+                            formula(model)[2],
+                            formula(model)[1],
+                            formula(model)[3],"\n")
+                            )
+                      )
+}
+```
+
+```{r}
+#Lecture 11
+#Look through homework, class notes
+#Pretty similar to single variable regression
+#Not statistically signifcant evidence from slope b test
+#Anova test-at least one test is non zero slope: Null
+#Corelation-Two Variables at a time
+#What makes a good model-R^2 is how much variation you can explain by model
+#R^2 is always going up
+plot(Price~Size+Lot, data = Houses)
+hist(modelH$residuals)
+qqnorm(modelH$residuals)
+qqline(modelH$residuals)
+
+plot(modelH$residuals~modelH$fitted.values)
+abline(0, 0)
+#Prediction and Confidence Interval for mean, similar but a lot more complicated
+newx=data.frame(Size = 2000, Lot = 10000)
+predict.lm(modelH, newx, interval = "confidence")
+predict.lm(modelH, newx, interval = "prediction")
+#Why is the ANOVA significant but not b test for slope
+#How similar they are to each other, test this with cor test
+#Multicollinearity-When two or more predictors are strongly asscoiated with each other, t test can be deceptive
+#Look at correlation test of matrix
+round(cor(Houses), 2) #Round to two decimal places
+#How do we detect multicollinearity
+#Make a model with one variable prediciting the other
+#one way you can do this is brute force
+mod = lm(formula = Size~Lot, data = Houses) #Very strong evidence we have a linear regresson
+summary(mod)$r.squared #extract the r squared
+VIF = 1/(1-summary(mod)$r.squared)
+VIF #Measures how much standard error is being inflated? is measured by model
+vif(modelH) #from package car
+#Higher than 5 is troublesome, lower than 5 can still create problems
+#Multiply t by vif right?
+```
+
+```{r}
+library(readr)
+StateSAT <- read_csv("~/STOR 455/Project 2/StateSAT.csv")
+head(StateSAT)
+cor(StateSAT[c(2:8)]) #first variable is categorical, only from 2nd through 8th column
+#Variables with high correlation are useful in prediction, but have to look at correlation between them
+#Create a model with all predictors
+modsat = lm(SAT~Takers+Income+Years+Public+Expend+Rank, data = StateSAT)
+#Significance codes get put next to the side of the stuff
+summary(modsat)
+vif(modsat)
+#vif(modSAT1) #Takers and rank are really inflated
+#Three ways to compare models
+#Look for a higher R squared
+#Look for large adjusted R squared
+#Look at indidvidual t tests
+
+#LEAPS
+all=regsubsets(SAT~Takers+Income+Years+Public+Expend+Rank, data = StateSAT, nbest = 2) #what does n best do? Two best for each number of variable
+summary(all) #Number one and number two for number of predictors, doesn't tell us what model is best across all prediction values
+ShowSubsets(all) #Look for highest adjusted R squared
+```
+
+```{r}
+#Function to show results for regsubsets
+# input should be the result from regsubsets
+
+ShowSubsets=function(regout){
+  z=summary(regout)
+  q=as.data.frame(z$outmat)
+  q$Rsq=round(z$rsq*100,2)
+  q$adjRsq=round(z$adjr2*100,2)
+  q$Cp=round(z$cp,2)
+  return(q)
+}
+
+#run the code below to acivate a VIF function 
+# for multiple regression models
+
+vif<- function(model, ...) {  
+  V <- summary(model)$cov.unscaled
+  Vi <- crossprod(model.matrix(model))
+	nam <- names(coef(model))
+  if(k <- match("(Intercept)", nam, nomatch = F)) {
+		v1 <- diag(V)[-k]
+		v2 <- (diag(Vi)[-k] - Vi[k, -k]^2/Vi[k,k])
+		nam <- nam[-k]
+	} else {
+		v1 <- diag(V)
+		v2 <- diag(Vi)
+		warning("No intercept term detected.  Results may
+surprise.")
+	}
+	structure(v1*v2, names = nam)
+}
+```
+
+```{r}
+#Lecture 12-9/26/2018
+#Standard error for linear regression is a function of how spread how the data is and how many data points
+#VIF is multiplied by standard error for the new standard error for multi linear regression
+#c and d is assess how good each variable in model, look at p values from summary
+#e is overall model statistically significant (maybe anova test, look at p value, gives significance that at least one of the variables are good), don't need no subsets, need no subsets for test
+#Anova takes into account degrees of freedom, large f value may be decieving because its all based on degrees of freedom, same thing as summary (anova 455), f statistic from summary
+#Import data, import html to sakai at the end, fill in the blank, will be explaniations after
+#More useful to use adjusted r squared, penalizes you for having more predictors, look at t tests, possible suspectibility to multicollinarity problems
+#LEAPS-use all subsets function, creates linear models for all of them, nbest = 2 gives two best variables
+#Rsquared-proportion of variation explained by the model, use r squared adjusted for using multiple predictors
+#Mallow Cp-R squared is only looking variables used in your model, Mallow Cp takes into account all the extra variables for understanding variation that is there, more useful with a larger number of predictors, number of predictors +1, good value should be small
+#VIF was variable, vif is function
+```
+

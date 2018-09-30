@@ -1,0 +1,176 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+data("MedGPA")
+head(MedGPA)
+plot(MCAT~GPA, data=MedGPA)
+mod = lm(MCAT~GPA, data=MedGPA)
+abline(mod)
+```
+
+```{r}
+plot(mod$residuals~mod$fitted.values)
+abline(a=0, b=0)
+```
+
+```{r}
+hist(mod$residuals)
+qqnorm(mod$residuals)
+qqline(mod$residuals)
+```
+
+
+```{r}
+library(readr)
+DistanceHome <- read_csv("~/STOR 455/DistanceHome.csv")
+View(DistanceHome)
+```
+
+
+```{r}
+mean(DistanceHome$Distance)
+median(DistanceHome$Distance)
+```
+
+
+```{r}
+boxplot(DistanceHome$Distance, horizontal = TRUE)
+hist(DistanceHome$Distance)
+```
+
+```{r}
+tally(~DistanceHome$Introvert)
+```
+
+```{r}
+mean(DistanceHome$Distance~DistanceHome$Introvert)
+mean(Distance~Introvert, data=DistanceHome)
+sd(Distance~Introvert, data=DistanceHome)
+#go up to him after class to see what this means, so the ~gets you both?
+```
+
+```{r}
+boxplot(Distance~Introvert, data=DistanceHome, horizontal=TRUE)
+```
+
+```{r}
+t.test(Distance~Introvert, data=DistanceHome)
+#Had outliers that were skewing it
+```
+
+```{r}
+Domestic=subset(DistanceHome, Distance<250)
+boxplot(Distance~Introvert, data = Domestic, horizontal=TRUE)
+t.test(Distance~Introvert, data=Domestic)
+#check if data is passable and "not horrible"
+```
+
+```{r}
+plot(Distance~Hours, data=Domestic)
+#plot Distance home compared to how many hours, data set is domestic
+lm(Distance~Hours, data=Domestic)
+#lm = linear model
+
+mod1=lm(Distance~Hours, data=Domestic)
+#save it as a variable, it can save it and give you more info
+abline(mod1)
+#creating a line, you tell it what intercept and slope you want
+summary(mod1)
+
+#Closer to 1 for R, the better the predictor variable is at predicting
+```
+
+```{r}
+plot(mod1$residuals~mod1$fitted.values)
+#want to see if residuals center around a line at 0, also don't want to see patterns in residuals
+abline(a=0, b=0)
+
+```
+
+```{r}
+hist(mod1$residuals)
+#want a normal distribution here, this is for #4, the bigger the data set is, it gets more useful
+#Are the Residuals normal?
+qqnorm(mod1$residuals)
+qqline(mod1$residuals)
+#what it should look like if normally distributed qqline
+```
+
+```{r}
+library(readr)
+Planets <- read_csv("STOR 455/Planets.csv")
+View(Planets)
+```
+
+```{r}
+plot(Year~Distance, data = Planets)
+lines(.997*Distance^1.502~Distance, data=Planets)
+plot(log(Year)~Distance, data = Planets)
+plot(Year~log(Distance), data = Planets)
+plot(log(Year)~log(Distance), data = Planets)
+mod3 = lm(formula = log(Year) ~ log(Distance), data = Planets)
+abline(mod3)
+lines(.997*Distance^1.502~Distance, data=Planets)
+```
+
+```{r}
+#lines plot on the graph in order, you should nme variables different things within your program
+data("SpeciesArea")
+head(SpeciesArea)
+plot(Species~Area, data=SpeciesArea)
+mod5=lm(Species~Area, data=SpeciesArea)
+abline(mod5)
+plot(mod5$residuals~mod5$fitted.values)
+abline(a=0, b=0)
+plot(log(Species)~log(Area), data=SpeciesArea)
+mod6=lm(log(Species)~log(Area), data=SpeciesArea)
+abline(mod6)
+summary(mod6)
+#if you want to predict a variable, make sure you are plugging it into the equation correctly
+```
+
+```{r}
+library(Stat2Data)
+data("LongJumpOlympics")
+head(LongJumpOlympics)
+```
+
+```{r}
+plot(Gold~Year, data=LongJumpOlympics)
+mod7=lm(Gold~Year, data=LongJumpOlympics)
+abline(mod7)
+```
+
+```{r}
+boxplot(mod7$residuals, horizontal=TRUE)
+max(mod7$residuals)
+rstandard(mod7)
+max(rstandard(mod7)) #max takes the max positive value, use min for minimum
+#What is the student data set thing?
+rstudent(mod7)
+summary(mod7)
+```
+
+```{r}
+data("PalmBeach")
+head(PalmBeach)
+
+mod8 = lm(Buchanan~Bush, data=PalmBeach)
+
+plot(Buchanan~Bush, data=PalmBeach)
+abline(mod8)
+
+summary(mod8)
+
+```
+
+```{r}
+newdataa = subset(PalmBeach, County!="PALM BEACH")
+mod8new = lm(Buchanan~Bush, data = newdataa)
+summary(mod8)
+summary(mod8new)
+```
+

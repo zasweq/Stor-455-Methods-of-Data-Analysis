@@ -1,0 +1,41 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+library(mosaic)
+library(Stat2Data)
+library(readr)
+library(leaps)
+```
+
+```{r}
+UsedCarLot <- read_csv("~/STOR 455/UsedCarLot.csv")
+Mercedes = subset(UsedCarLot, UsedCarLot$model == "Eclass") #Chose Mercedes E Class
+Mercedes$age<-2018-Mercedes$year
+head(Mercedes)
+mod1 = lm(price~age+mileage, data=Mercedes) #two predictors now
+summary(mod1)
+anova455(mod1)
+```
+```{r}
+plot(mod1$residuals~mod1$fitted.values)
+abline(a=0, b=0)
+max(mod1$residuals)
+min(mod1$residuals)
+which.max(mod1$residuals) #why does this output 12 twice?
+#largest residual is 13.793, car# 12
+```
+c. Both predictor variables, age and mileage, have very statistically significant p values, even after their standard errors have been inflated from the VIF ("after accounting for the other predictors in the model"). Both their p values are less than .01, meaning there is a very unlikely chance the null hypothesis of the slope=0 to be true, which lets us accept the alternative hypothesis of both variables slope to not equal zero. The p value for the t test of slope for age is .00041, and the p value for the t test of slope for mileage was .00876.
+d. Used the anova 455 function to test for the overall effectiveness of the model. The f value using the anova test (mean squared model/mean squared error) had a probability value of pretty much zero. This probabilitly value says assuming the null is true, what is the probability of this happening. In the ANOVA test, the null hypothesis is that none of the variables have a non zero slope, which the low probability value allows you to reject, accepting the alternative that at least one of the variables has a non zero slope, showing our model is effecitve. Also, the adjusted R squared for the model is .7963, which is the r squared "penalized" for using more variables, as using more variables will always increase R squared. This adjusted r squared is decent, showing our model is somewhat effective.
+```{r}
+vif(mod1)
+```
+e. Both of these vif are quite high (almost at 5), showing there is multicolinearity between these two variables. vif = 1/1-r^2
+, so the r^2 between these two variables are quite high, showing there is likely a linear relationship and correlation between these two
+variables. However, even after this vif has inflated the standard errors in the t test for slope, there was still statistically significant evidence for both slopes.

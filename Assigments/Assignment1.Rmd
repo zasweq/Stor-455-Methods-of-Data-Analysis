@@ -1,0 +1,75 @@
+```{r}
+library(Stat2Data)
+data("HighPeaks")
+head(HighPeaks)
+plot(Time~Ascent, data = HighPeaks)
+mod1=lm(Time~Ascent, data = HighPeaks)
+abline(mod1)
+summary(mod1)
+#least squared regression line formula: Time = 4.21 + .0021Ascent
+View(mod1$residuals)
+View(mod1$fitted.values)
+#The model predicts it will take 10.80 hours to ascend Mt. Marcy
+#The residual of Mt. Marcy is -.80
+#The largest residual in absolute value is Mt. Emmons, with a residual of 6.53
+```
+
+```{r}
+plot(mod1$residuals~mod1$fitted.values)
+abline(a=0, b=0)
+#This is another graph to check for conditions of a linear model
+#This graph is checking for the condition of zero mean, which means the distributions of errors are centered at zero, without any significant pattern
+#This plot graphs the residuals against the fitted values, the distribution of residuals are somewhat centered around zero, with no significant pattern seen, so this lets us check the zero mean condition of using a linear model
+```
+
+```{r}
+hist(mod1$residuals)
+qqnorm(mod1$residuals)
+qqline(mod1$residuals)
+#These are also graphs which help us decide on whether the data meets the conditions of a linear model
+#These graphs show us whether we believe the data set has independence, no relationship among errors
+#The Q-Q plot seems to follow the line, showing there is no siginificicant relationship among errors, so our condition of indepdence is met
+```
+
+```{r}
+data("Perch")
+head(Perch)
+plot(Weight~Length, data = Perch)
+mod2 = lm(Weight~Length, data = Perch)
+abline(mod2)
+#Clearly does not look like a linear model fits the data
+```
+
+```{r}
+plot(log(Weight)~Length, data = Perch)
+plot(Weight~log(Length), data = Perch)
+#the transformation below seems to fit a linear model
+plot(log(Weight)~log(Length), data = Perch)
+mod3 = lm(log(Weight)~log(Length), data = Perch)
+abline(mod3)
+summary(mod3)
+#least squares regression line: log(Weight) = -5.08 + 3.16 log(Length)
+```
+
+```{r}
+plot(mod3$residuals~mod3$fitted.values)
+abline(a=0, b=0)
+#This graph checks for conditions of a linear model
+#This graph is checking for the condition of zero mean, which means the distributions of errors are centered at zero, without any significant pattern
+#This plot graphs the residuals against the fitted values, the distribution of residuals are somewhat centered around zero, however it seems like there are a lot of values a lot higher than the fitted values, meaning the data is centered around a value a little greater than zero, creating concerns that we can use a linear model for this transformed dataset
+```
+
+```{r}
+hist(mod3$residuals)
+qqnorm(mod3$residuals)
+qqline(mod3$residuals)
+#These two graphs create some concerns about the conditions that we can use a linear model
+#The histogram of residuals looks somewhat normal, however there are a lot of outliers present on the right side of the histogram, also showed through the QQ plot, the data being somewhat right skewed
+#The qq plot shows that there may be a pattern, as at the right part of the graph there are a lot of values above the prediction line
+```
+
+```{r}
+#After algebra, prediction equation becomes weight = .00622(length^3.163)
+#Plugging in 30 grams, you get a prediction of 292.365 grams
+```
+
